@@ -1,0 +1,30 @@
+import requests
+
+# Funcție pentru a obține informațiile meteo de la API-ul wttr.in
+def get_weather(city):
+    try:
+        # Trimitem cererea GET către API-ul wttr.in, folosind parametrii pentru a obține formatul dorit
+        url = f"https://wttr.in/{city}?format=%C+%t+%w"
+        response = requests.get(url, verify=False)  # Nu verificăm certificatul SSL
+        response.raise_for_status()  # Verifică dacă cererea a avut succes
+        
+        # Răspunsul va fi un text care conține condițiile meteo, temperatura și vântul
+        return response.text.strip()
+    
+    except requests.exceptions.RequestException as e:
+        # În caz de eroare de rețea, API-ul nu răspunde sau orașul nu este valid
+        return f"Eroare: {str(e)}"
+
+# Program principal
+if __name__ == "__main__":
+    # Cerem utilizatorului să introducă numele orașului
+    city = input("Introduceti numele orasului pentru a obtine vremea: ")
+
+    # Obținerea informațiilor meteo
+    weather_info = get_weather(city)
+
+    # Afișarea rezultatului
+    if "Eroare" in weather_info:
+        print(weather_info)  # Afișăm mesajul de eroare
+    else:
+        print(f"Vremea in {city}: {weather_info}")
