@@ -1,0 +1,65 @@
+import requests
+from bs4 import BeautifulSoup
+from tabulate import tabulate
+
+# Funcție pentru a obține prețurile criptomonedelor Bitcoin și Ethereum
+def get_crypto_prices():
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Verifică dacă cererea a avut succes
+        data = response.json()  # Parseaște răspunsul JSON
+        return data['bitcoin']['usd'], data['ethereum']['usd']
+    except requests.exceptions.RequestException as e:
+        print(f"Eroare la conectarea la API-ul CoinGecko: {e}")
+        return None, None
+
+# Funcție pentru a obține ultimele 5 știri de pe CoinDesk
+def get_latest_news():
+    url = "https://www.coindesk.com/"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Verifică dacă cererea a avut succes
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extrage titlurile și link-urile celor mai recente 5 știri
+        articles = soup.find_all('h3', class_='card-title', limit=5)
+        news = []
+        for article in articles:
+            title = article.get_text(strip=True)
+            link = article.find('a')['href']
+            news.append((title, f"https://www.coindesk.com{link}"))
+        return news
+    except requests.exceptions.RequestException as e:
+        print(f"Eroare la conectarea la site-ul CoinDesk: {e}")
+        return []
+
+# Program principal
+if __name__ == "__main__":
+    # Obținem prețurile criptomonedelor
+    bitcoin_price, ethereum_price = get_crypto_prices()
+
+    # Verificăm dacă am obținut datele corect
+    if bitcoin_price is None or ethereum_price is None:
+        print("Nu am reușit să obținem prețurile criptomonedelor.")
+    else:
+        # Afișăm prețurile într-un tabel
+        print("\nPrețurile criptomonedelor în dolari (USD):")
+        headers = ["Criptomonedă", "Preț (USD)"]
+        prices = [
+            ["Bitcoin", bitcoin_price],
+            ["Ethereum", ethereum_price]
+        ]
+        print(tabulate(prices, headers, tablefmt="grid"))
+
+    # Obținem cele mai recente știri
+    news = get_latest_news()
+
+    # Verificăm dacă am obținut știri
+    if not news:
+        print("\nNu am reușit să obținem știrile de pe CoinDesk.")
+    else:
+        # Afișăm titlurile știrilor și link-urile acestora
+        print("\nCele mai recente 5 știri despre criptomonede:")
+        for idx, (title, link) in enumerate(news, 1):
+            print(f"{idx}. {title} - {link}")
