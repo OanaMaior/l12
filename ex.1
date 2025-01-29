@@ -1,0 +1,58 @@
+import requests
+from tabulate import tabulate
+
+# Functie pentru a obtine utilizatorii de la API
+def get_users():
+    url = "https://jsonplaceholder.typicode.com/users"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Verifica daca cererea a avut succes
+        return response.json()  # Returneaza datele in format JSON
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
+# Functie pentru a afisa utilizatorii in format tabelar
+def display_users(users):
+    headers = ["ID", "Nume", "Username", "Email", "Oras", "Companie", "Telefon", "Website"]
+    table = []
+
+    for user in users:
+        table.append([
+            user["id"],
+            user["name"],
+            user["username"],
+            user["email"],
+            user["address"]["city"],
+            user["company"]["name"],
+            user["phone"],
+            user["website"]
+        ])
+    
+    print(tabulate(table, headers, tablefmt="grid"))
+
+# Functie pentru a filtra utilizatorii dupa oras
+def filter_users_by_city(users, city_name):
+    return [user for user in users if user["address"]["city"].lower() == city_name.lower()]
+
+# Program principal
+if __name__ == "__main__":
+    # Obtinerea utilizatorilor
+    users = get_users()
+
+    if users:
+        # Afisare initiala a tuturor utilizatorilor
+        print("Toți utilizatorii:")
+        display_users(users)
+
+        # Intrebare pentru filtrarea utilizatorilor dupa oras
+        city_name = input("\nIntroduceti orasul pentru a filtra utilizatorii: ")
+
+        # Filtrare si afisare utilizatori din orasul specificat
+        filtered_users = filter_users_by_city(users, city_name)
+        
+        if filtered_users:
+            print(f"\nUtilizatorii din orasul '{city_name}':")
+            display_users(filtered_users)
+        else:
+            print(f"\nNu au fost gasiti utilizatori in orasul '{city_name}'.")
